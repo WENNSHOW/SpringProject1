@@ -9,6 +9,9 @@ import org.springframework.web.bind.annotation.*;
 import ru.wenn.springcourse.dao.BookDAO;
 import ru.wenn.springcourse.dao.PersonDAO;
 import ru.wenn.springcourse.models.Book;
+import ru.wenn.springcourse.models.Person;
+
+import java.util.Optional;
 
 @Controller
 @RequestMapping("/books")
@@ -57,6 +60,38 @@ public class BooksController {
 
         bookDAO.update(id, book);
         return "redirect:/books";
+    }
+
+    @GetMapping("/{id}")
+    public String show(@PathVariable("id") int id, Model model, @ModelAttribute("person") Person person) {
+        model.addAttribute("book", bookDAO.show(id));
+
+        Optional<Person> bookOwner = bookDAO.getBookOwner(id);
+
+        if (bookOwner.isPresent())
+            model.addAttribute("owner", bookOwner.get());
+        else
+            model.addAttribute("people", personDAO.index());
+
+        return "books/show";
+    }
+
+    @DeleteMapping("/{id}")
+    public String delete(@PathVariable("id") int id) {
+        bookDAO.delete(id);
+        return "redirect:/books";
+    }
+
+    @PatchMapping("/{id}/release")
+    public String release(@PathVariable("id") int id) {
+        bookDAO.release(id);
+        return "redirect:/books/" + id;
+    }
+
+    @PatchMapping("/{id}/assign")
+    public String assign(@PathVariable("id") int id, @ModelAttribute("person") Person selectedPerson) {
+        bookDAO.assign(id, selectedPerson);
+        return "redirect:/books/" + id;
     }
 
 }
